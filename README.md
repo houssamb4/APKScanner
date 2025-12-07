@@ -39,8 +39,7 @@ A comprehensive APK security analysis and decompilation microservice for Android
 
 ### Prerequisites
 - Python 3.8+
-- Java Runtime Environment (for Apktool)
-- Apktool installed and available in PATH
+- Java Runtime Environment (JRE) - apktool is bundled with the project
 
 ### Setup
 ```bash
@@ -153,6 +152,7 @@ apkscanner/
 ├── tests/
 ├── temp/                      # Temporary APK storage
 ├── logs/                      # Application logs
+├── tools/                     # Apktool binaries
 ├── docker/
 ├── requirements.txt
 ├── .env.example
@@ -175,6 +175,11 @@ apkscanner/
 4. Ensure all tests pass
 5. Submit a pull request
 
-## License
-
-[Add your license here]
+DATABASE_URL=sqlite:///./apkscanner.db
+TEMP_DIR=./temp
+LOGS_DIR=./logs
+APKTOOL_PATH=C:\tools\apktool.bat
+LOG_LEVEL=INFO
+MAX_FILE_SIZE=104857600  # 100MB
+UVICORN_HOST=0.0.0.0
+UVICORN_PORT=8000  
