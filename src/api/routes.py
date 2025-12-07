@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict
 from ..database.session import get_db
 from ..services.apk_analyzer import APKAnalyzer
-from ..database import crud
+from ..database.crud import create_apk, get_apk, get_apks, get_endpoints_by_apk
 from .schemas import AnalysisResult, ErrorResponse
 from ..utils.logger import logger
 
@@ -33,7 +33,7 @@ async def get_apks(
     db: Session = Depends(get_db)
 ):
     """Get list of analyzed APKs"""
-    apks = crud.get_apks(db, skip=skip, limit=limit)
+    apks = get_apks(db, skip=skip, limit=limit)
     return [
         {
             'id': apk.id,
@@ -50,11 +50,11 @@ async def get_apk_details(
     db: Session = Depends(get_db)
 ):
     """Get detailed analysis for a specific APK"""
-    apk = crud.get_apk(db, apk_id)
+    apk = get_apk(db, apk_id)
     if not apk:
         raise HTTPException(status_code=404, detail="APK not found")
 
-    endpoints = crud.get_endpoints_by_apk(db, apk_id)
+    endpoints = get_endpoints_by_apk(db, apk_id)
 
     return {
         'id': apk.id,

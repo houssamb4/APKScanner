@@ -4,7 +4,8 @@ from .decompiler import Decompiler
 from .manifest_parser import ManifestParser
 from .permission_checker import PermissionChecker
 from .file_handler import save_uploaded_apk, cleanup_temp_files
-from ..database import crud, models
+from ..database.crud import create_apk, get_permission_by_name, create_permission, create_component, create_endpoint
+from ..database.models import APK, Permission, Component, Endpoint
 from .logger import logger
 
 class APKAnalyzer:
