@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  apkscanner:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+      - ./apkscanner.db:/app/apkscanner.db
+    environment:
+      - DATABASE_URL=sqlite:///./apkscanner.db
+      - TEMP_DIR=./temp
+      - LOGS_DIR=./logs
+    restart: unless-stopped
