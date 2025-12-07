@@ -1,2 +1,9 @@
-# APKScanner
-APKScanner is a specialized microservice for automated security analysis of Android APK files. It decompiles APKs, extracts critical security metadata, and identifies misconfigurations and vulnerabilities in Android applications.
+# APKScanner Microservice
+
+APK security analysis microservice for Android applications.
+
+## Quick Start
+
+1. Install dependencies:
+```bash
+make install
