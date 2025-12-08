@@ -52,7 +52,7 @@ class APKPipeline:
         
         try:
             # Stage 1: Validate
-            logger.info("🔍 Pipeline Stage 1/5: VALIDATE")
+            logger.info("[STAGE 1/5] VALIDATE")
             valid, error_msg = self._stage_validate(apk_file_path)
             result['stages']['validate'] = {
                 'success': valid,
@@ -61,13 +61,13 @@ class APKPipeline:
             
             if not valid:
                 result['error'] = error_msg
-                logger.error(f"❌ Validation failed: {error_msg}")
+                logger.error(f"[ERROR] Validation failed: {error_msg}")
                 return False, result
             
-            logger.info("✅ Validation passed")
+            logger.info("[OK] Validation passed")
             
             # Stage 2: Extract (Info extraction via androguard)
-            logger.info("📦 Pipeline Stage 2/5: EXTRACT")
+            logger.info("[STAGE 2/5] EXTRACT")
             extract_data, extract_error = self._stage_extract(apk_file_path)
             result['stages']['extract'] = {
                 'success': extract_data is not None,
@@ -76,13 +76,13 @@ class APKPipeline:
             
             if extract_data is None:
                 result['error'] = extract_error
-                logger.error(f"❌ Extraction failed: {extract_error}")
+                logger.error(f"[ERROR] Extraction failed: {extract_error}")
                 return False, result
             
-            logger.info("✅ Extraction passed")
+            logger.info("[OK] Extraction passed")
             
             # Stage 3: Decompile
-            logger.info("🔧 Pipeline Stage 3/5: DECOMPILE")
+            logger.info("[STAGE 3/5] DECOMPILE")
             decompile_result, decompile_error = self._stage_decompile(apk_file_path, extract_data)
             result['stages']['decompile'] = {
                 'success': decompile_result is not None,
@@ -91,13 +91,13 @@ class APKPipeline:
             
             if decompile_result is None:
                 result['error'] = decompile_error
-                logger.error(f"❌ Decompilation failed: {decompile_error}")
+                logger.error(f"[ERROR] Decompilation failed: {decompile_error}")
                 return False, result
             
-            logger.info("✅ Decompilation passed")
+            logger.info("[OK] Decompilation passed")
             
             # Stage 4: Organize (Prepare structured analysis)
-            logger.info("📊 Pipeline Stage 4/5: ORGANIZE")
+            logger.info("[STAGE 4/5] ORGANIZE")
             organized_data, organize_error = self._stage_organize(extract_data, decompile_result)
             result['stages']['organize'] = {
                 'success': organized_data is not None,
@@ -106,13 +106,13 @@ class APKPipeline:
             
             if organized_data is None:
                 result['error'] = organize_error
-                logger.error(f"❌ Organization failed: {organize_error}")
+                logger.error(f"[ERROR] Organization failed: {organize_error}")
                 return False, result
             
-            logger.info("✅ Organization passed")
+            logger.info("[OK] Organization passed")
             
             # Stage 5: Output (Store results)
-            logger.info("💾 Pipeline Stage 5/5: OUTPUT")
+            logger.info("[STAGE 5/5] OUTPUT")
             output_result, output_error = self._stage_output(organized_data, db)
             result['stages']['output'] = {
                 'success': output_result is not None,
@@ -121,15 +121,15 @@ class APKPipeline:
             
             if output_result is None:
                 result['error'] = output_error
-                logger.error(f"❌ Output failed: {output_error}")
+                logger.error(f"[ERROR] Output failed: {output_error}")
                 return False, result
             
-            logger.info("✅ Output passed")
+            logger.info("[OK] Output passed")
             
             # All stages completed
             result['success'] = True
             result['data'] = output_result
-            logger.info("✅ ✅ ✅ Pipeline completed successfully!")
+            logger.info("[OK] Pipeline completed successfully!")
             
             return True, result
             
