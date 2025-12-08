@@ -73,7 +73,7 @@ class APKAnalyzer:
                 cleanup_temp_files(apk_path)
 
     def _store_analysis_results(self, db: Session, filename: str, manifest: Dict,
-                              permissions: Dict, components: Dict, security: Dict, endpoints: List) -> models.APK:
+                              permissions: Dict, components: Dict, security: Dict, endpoints: List) -> APK:
         """Store analysis results in database."""
         # Create APK record
         apk_data = {

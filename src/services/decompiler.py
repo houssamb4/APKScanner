@@ -2,10 +2,22 @@ import os
 import subprocess
 import tempfile
 import re
-from androguard.core.apk import APK
-from androguard.core.dex import DEX
+from typing import TYPE_CHECKING
 from ..core.config import settings
 from ..utils.logger import logger
+
+if TYPE_CHECKING:
+    from androguard.core.apk import APK
+
+# Try to import androguard, but make it optional
+try:
+    from androguard.core.apk import APK as AndroidAPK
+    from androguard.core.dex import DEX
+    ANDROGUARD_AVAILABLE = True
+except ImportError:
+    ANDROGUARD_AVAILABLE = False
+    logger.warning("Androguard not installed. Some analysis features will be limited.")
+    AndroidAPK = None  # type: ignore
 
 class Decompiler:
     def __init__(self):
@@ -31,8 +43,25 @@ class Decompiler:
 
     def analyze_with_androguard(self, apk_path: str) -> dict:
         """Analyze APK using Androguard and return analysis data."""
+        if not ANDROGUARD_AVAILABLE:
+            logger.warning("Androguard not available - returning minimal analysis")
+            return {
+                'package_name': 'unknown',
+                'version_code': 'unknown',
+                'version_name': 'unknown',
+                'min_sdk': 'unknown',
+                'target_sdk': 'unknown',
+                'permissions': [],
+                'activities': [],
+                'services': [],
+                'receivers': [],
+                'providers': [],
+                'intent_filters': {},
+                'manifest_xml': '<manifest></manifest>',
+            }
+        
         try:
-            apk = APK(apk_path)
+            apk = AndroidAPK(apk_path)
             analysis = {
                 'package_name': apk.get_package(),
                 'version_code': apk.get_androidversion_code(),
@@ -53,7 +82,7 @@ class Decompiler:
             logger.error(f"Androguard analysis failed: {e}")
             raise
 
-    def _extract_intent_filters(self, apk: APK) -> dict:
+    def _extract_intent_filters(self, apk: "APK") -> dict:
         """Extract intent filters from the APK."""
         filters = {}
         try:

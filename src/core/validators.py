@@ -3,7 +3,7 @@
 import os
 import zipfile
 from typing import Tuple
-from ...utils.logger import logger
+from ..utils.logger import logger
 
 
 class APKValidator:
