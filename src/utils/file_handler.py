@@ -1,7 +1,7 @@
 import os
 import shutil
 from fastapi import UploadFile
-from .config import settings
+from ..core.config import settings
 from .logger import logger
 
 def save_uploaded_apk(file: UploadFile) -> str:

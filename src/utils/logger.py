@@ -1,6 +1,6 @@
 import logging
 import os
-from .config import settings
+from ..core.config import settings
 
 # Create logs directory if it doesn't exist
 os.makedirs(settings.logs_dir, exist_ok=True)

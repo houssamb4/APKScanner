@@ -1,10 +1,11 @@
 import os
 import subprocess
 import tempfile
+import re
 from androguard.core.apk import APK
 from androguard.core.dex import DEX
-from .config import settings
-from .logger import logger
+from ..core.config import settings
+from ..utils.logger import logger
 
 class Decompiler:
     def __init__(self):

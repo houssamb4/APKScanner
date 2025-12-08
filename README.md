@@ -1,6 +1,19 @@
 # APKScanner
 
-A comprehensive APK security analysis and decompilation microservice for Android applications.
+A comprehensive APK security analysis and decompilation microservice for Android applications with a complete 5-stage processing pipeline.
+
+## 🔄 Processing Pipeline
+
+**Input APK → Validate → Extract → Decompile → Organize → Output**
+
+The project implements a robust pipeline for complete APK analysis:
+- ✅ **Validate**: File format and structure validation
+- ✅ **Extract**: APK metadata extraction using Androguard  
+- ✅ **Decompile**: APK decompilation with apktool and code analysis
+- ✅ **Organize**: Structured data organization and risk assessment
+- ✅ **Output**: Database storage with relationships
+
+See [PIPELINE.md](PIPELINE.md) for detailed pipeline documentation.
 
 ## Features
 

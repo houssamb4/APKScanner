@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from typing import Dict, List
-from .logger import logger
+from ..utils.logger import logger
 
 class ManifestParser:
     # Dangerous permissions that require special attention

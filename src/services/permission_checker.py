@@ -1,5 +1,5 @@
 from typing import List, Dict
-from .logger import logger
+from ..utils.logger import logger
 
 class PermissionChecker:
     # Permission risk levels and descriptions
