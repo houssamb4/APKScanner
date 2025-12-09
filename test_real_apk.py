@@ -22,14 +22,14 @@ def test_health():
     try:
         response = requests.get(f"{API_BASE}/health")
         if response.status_code == 200:
-            print("✓ Server is healthy")
+            print("[OK] Server is healthy")
             print(f"  Response: {json.dumps(response.json(), indent=2)}")
             return True
         else:
-            print(f"✗ Health check failed: {response.status_code}")
+            print(f"[FAIL] Health check failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return False
 
 def test_upload_apk(apk_path):
@@ -37,7 +37,7 @@ def test_upload_apk(apk_path):
     print_header("2. Uploading APK for Analysis")
     
     if not Path(apk_path).exists():
-        print(f"✗ APK file not found: {apk_path}")
+        print(f"[FAIL] APK file not found: {apk_path}")
         return None
     
     file_size = Path(apk_path).stat().st_size
@@ -53,10 +53,10 @@ def test_upload_apk(apk_path):
         
         if response.status_code in [200, 201]:
             result = response.json()
-            print("✓ Pipeline execution completed!")
+            print("[OK] Pipeline execution completed!")
             return result
         else:
-            print(f"✗ Upload failed with status {response.status_code}")
+            print(f"[FAIL] Upload failed with status {response.status_code}")
             try:
                 print(f"  Error: {response.json().get('detail', response.text)}")
             except:
@@ -64,10 +64,10 @@ def test_upload_apk(apk_path):
             return None
             
     except requests.exceptions.Timeout:
-        print("✗ Request timed out (APK processing took too long)")
+        print("[FAIL] Request timed out (APK processing took too long)")
         return None
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return None
 
 def display_pipeline_results(result):
@@ -79,7 +79,8 @@ def display_pipeline_results(result):
     
     # Overall status
     success = result.get('success')
-    print(f"Overall Status: {'✓ SUCCESS' if success else '✗ FAILED'}")
+    status_text = '[OK] SUCCESS' if success else '[FAIL] FAILED'
+    print(f"Overall Status: {status_text}")
     
     if result.get('error'):
         print(f"Error: {result['error']}\n")
@@ -89,11 +90,11 @@ def display_pipeline_results(result):
         print("Pipeline Stages:")
         stages = result['stages']
         for stage_name, stage_result in stages.items():
-            status = "✓ PASS" if stage_result.get('success') else "✗ FAIL"
+            status = "[OK] PASS" if stage_result.get('success') else "[FAIL] FAIL"
             message = stage_result.get('message', '')
             print(f"  {stage_name.upper():15} {status}")
             if message and not stage_result.get('success'):
-                print(f"                 └─ {message}")
+                print(f"                 --> {message}")
     
     print()
 
@@ -121,11 +122,11 @@ def get_apks_list():
                 print("No APKs in database yet.")
                 return []
         else:
-            print(f"✗ Failed to retrieve APKs: {response.status_code}")
+            print(f"[FAIL] Failed to retrieve APKs: {response.status_code}")
             return None
             
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return None
 
 def get_apk_details(apk_id):
@@ -139,14 +140,14 @@ def get_apk_details(apk_id):
             print(json.dumps(details, indent=2))
             return details
         elif response.status_code == 404:
-            print(f"✗ APK with ID {apk_id} not found")
+            print(f"[FAIL] APK with ID {apk_id} not found")
             return None
         else:
-            print(f"✗ Failed to retrieve details: {response.status_code}")
+            print(f"[FAIL] Failed to retrieve details: {response.status_code}")
             return None
             
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return None
 
 def main():
@@ -158,7 +159,7 @@ def main():
     
     # Test health
     if not test_health():
-        print("\n✗ Server is not responding. Start the server first:")
+        print("\n[FAIL] Server is not responding. Start the server first:")
         print("  python -m uvicorn main:app --host 127.0.0.1 --port 8001")
         return
     
@@ -182,11 +183,11 @@ def main():
     print("Test Summary")
     print("="*80)
     if result and result.get('success'):
-        print("✓ COMPLETE SUCCESS - APK analysis pipeline executed successfully!")
+        print("[OK] COMPLETE SUCCESS - APK analysis pipeline executed successfully!")
         print("\nThe APK has been analyzed and stored in the database.")
         print("You can now retrieve its analysis data using the API endpoints.")
     else:
-        print("✗ Test did not complete successfully.")
+        print("[FAIL] Test did not complete successfully.")
         print("\nPossible issues:")
         print("  1. Check if server is running")
         print("  2. Check if APK file is valid")
