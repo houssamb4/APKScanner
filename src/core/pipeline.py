@@ -265,7 +265,13 @@ class APKPipeline:
             for perm in manifest.get('permissions', []):
                 perm_record = crud.get_permission_by_name(db, perm['name'])
                 if not perm_record:
-                    perm_record = crud.create_permission(db, perm)
+                    # Filter out fields not in Permission model
+                    perm_data = {
+                        'name': perm['name'],
+                        'protection_level': perm.get('protection_level', ''),
+                        'description': perm.get('description', '')
+                    }
+                    perm_record = crud.create_permission(db, perm_data)
                 apk.permissions.append(perm_record)
             
             # Store components
