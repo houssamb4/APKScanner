@@ -8,9 +8,9 @@ import sys
 def test_apk_analysis():
     """Test the APK analysis endpoint."""
     url = "http://localhost:8001/api/v1/analyze"
-    apk_path = "temp/F-Droid-test.apk"
+    apk_path = "temp/F-Droid-test.apk"  # Use the F-Droid APK
     
-    print("Testing APKScanner microservice...")
+    print("Testing APKScanner microservice with FULL Androguard power...")
     print(f"Endpoint: {url}")
     print(f"APK file: {apk_path}")
     print("-" * 50)
@@ -89,6 +89,53 @@ def test_apk_analysis():
                 print(f"\nEndpoints Found: {len(endpoints)}")
                 for endpoint in endpoints[:5]:  # Show first 5
                     print(f"  - {endpoint}")
+            
+            # === NEW: Display Security Analysis Results ===
+            if 'security_analysis' in result:
+                sec = result['security_analysis']
+                print(f"\n{'='*50}")
+                print("SECURITY ANALYSIS RESULTS (Java Source Code)")
+                print(f"{'='*50}")
+                print(f"Files Analyzed: {sec.get('total_files_analyzed', 0)}")
+                print(f"Risk Level: {sec.get('risk_level', 'UNKNOWN')}")
+                print(f"\nAPI Keys/Secrets Found: {sec.get('api_keys_found', 0)}")
+                print(f"Crypto Issues Found: {sec.get('crypto_issues_found', 0)}")
+                print(f"Insecure Patterns Found: {sec.get('insecure_patterns_found', 0)}")
+                
+                # Show sample findings
+                if sec.get('api_keys_found', 0) > 0:
+                    print("\n⚠️  API KEYS/SECRETS DETECTED:")
+                    for finding in sec['findings']['api_keys'][:5]:
+                        print(f"  [{finding['severity']}] {finding['type']} in {finding['file']}:{finding['line']}")
+                
+                if sec.get('crypto_issues_found', 0) > 0:
+                    print("\n⚠️  CRYPTO ISSUES DETECTED:")
+                    for finding in sec['findings']['crypto_issues'][:5]:
+                        print(f"  [{finding['severity']}] {finding['type']}: {finding['match']}")
+                
+                if sec.get('insecure_patterns_found', 0) > 0:
+                    print("\n⚠️  INSECURE PATTERNS DETECTED:")
+                    for finding in sec['findings']['insecure_patterns'][:5]:
+                        print(f"  [{finding['severity']}] {finding['type']} in {finding['file']}:{finding['line']}")
+            
+            # === NEW: Display Crypto Usage ===
+            if 'crypto_usage' in result:
+                crypto = result['crypto_usage']
+                print(f"\n{'='*50}")
+                print("CRYPTOGRAPHY USAGE ANALYSIS")
+                print(f"{'='*50}")
+                if crypto.get('cipher_algorithms'):
+                    print(f"Cipher Algorithms: {', '.join(crypto['cipher_algorithms'])}")
+                if crypto.get('message_digest_algorithms'):
+                    print(f"Hash Algorithms: {', '.join(crypto['message_digest_algorithms'])}")
+                if crypto.get('key_generators'):
+                    print(f"Key Generators: {', '.join(crypto['key_generators'])}")
+                if crypto.get('ssl_contexts'):
+                    print(f"SSL/TLS Contexts: {', '.join(crypto['ssl_contexts'])}")
+            
+            # Display Java source directory
+            if 'java_source_dir' in result:
+                print(f"\n✅ Java Source Code: {result['java_source_dir']}")
             
             print("\n" + "=" * 50)
             print("Full JSON Response:")

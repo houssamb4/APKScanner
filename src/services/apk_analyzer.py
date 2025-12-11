@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .decompiler import Decompiler
 from .manifest_parser import ManifestParser
 from .permission_checker import PermissionChecker
+from .security_analyzer import SecurityAnalyzer
 from ..utils.file_handler import save_uploaded_apk, cleanup_temp_files
 from ..database import crud
 from ..database.models import APK, Permission, Component, Endpoint
@@ -13,6 +14,7 @@ class APKAnalyzer:
         self.decompiler = Decompiler()
         self.manifest_parser = ManifestParser()
         self.permission_checker = PermissionChecker()
+        self.security_analyzer = SecurityAnalyzer()
 
     async def analyze_apk(self, uploaded_file, db: Session) -> Dict:
         """Main APK analysis function."""
@@ -45,6 +47,18 @@ class APKAnalyzer:
             # Extract endpoints
             endpoints = self.decompiler.extract_endpoints(decompiled_dir)
 
+            # === NEW: Decompile to Java source code with Androguard ===
+            logger.info("Decompiling DEX to Java source code...")
+            java_src_dir = self.decompiler.decompile_to_java(apk_path)
+            
+            # === NEW: Security analysis on Java source code ===
+            logger.info("Performing security analysis on Java source code...")
+            security_findings = self.security_analyzer.analyze_java_sources(java_src_dir)
+            
+            # === NEW: Crypto usage analysis ===
+            logger.info("Analyzing cryptographic usage...")
+            crypto_analysis = self.security_analyzer.find_crypto_usage(apk_path)
+
             # Store in database
             apk_record = self._store_analysis_results(db, uploaded_file.filename, manifest_analysis,
                                                     permission_analysis, component_analysis, security_analysis, endpoints)
@@ -59,7 +73,10 @@ class APKAnalyzer:
                 'components': component_analysis,
                 'security_flags': security_analysis,
                 'endpoints': endpoints,
-                'overall_risk_score': self._calculate_risk_score(permission_analysis, component_analysis, security_analysis)
+                'security_analysis': security_findings,  # NEW
+                'crypto_usage': crypto_analysis,  # NEW
+                'java_source_dir': java_src_dir,  # NEW
+                'overall_risk_score': self._calculate_risk_score(permission_analysis, component_analysis, security_analysis, security_findings)
             }
 
             logger.info(f"Analysis completed for {uploaded_file.filename}")
@@ -122,7 +139,7 @@ class APKAnalyzer:
         db.commit()
         return apk
 
-    def _calculate_risk_score(self, permissions: Dict, components: Dict, security: Dict) -> int:
+    def _calculate_risk_score(self, permissions: Dict, components: Dict, security: Dict, security_findings: Dict = None) -> int:
         """Calculate overall risk score (0-10)."""
         score = 0
 
@@ -134,5 +151,15 @@ class APKAnalyzer:
 
         # Security flags
         score += min(security.get('total_issues', 0) * 2, 3)
+        
+        # NEW: Security findings from code analysis
+        if security_findings:
+            # Critical findings (API keys, SQL injection, SSL bypass)
+            if security_findings.get('api_keys_found', 0) > 0:
+                score = 10  # Auto max score for hardcoded API keys
+            elif security_findings.get('risk_level') == 'CRITICAL':
+                score = max(score, 9)
+            elif security_findings.get('risk_level') == 'HIGH':
+                score = max(score, 7)
 
         return min(score, 10)
