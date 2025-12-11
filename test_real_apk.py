@@ -8,7 +8,7 @@ from pathlib import Path
 
 # Configuration
 API_BASE = "http://127.0.0.1:8001/api/v1"
-APK_FILE = r"C:\Users\houss\Downloads\com.superproductivity.superproductivity_1604030000.apk"
+APK_FILE = r"C:\Users\houss\Downloads\F-Droid.apk"
 
 def print_header(title):
     """Print a formatted header."""
