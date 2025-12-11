@@ -13,11 +13,15 @@ if TYPE_CHECKING:
 try:
     from androguard.core.apk import APK as AndroidAPK
     from androguard.core.dex import DEX
+    from androguard.misc import AnalyzeAPK
+    from androguard.core.analysis.analysis import Analysis
+    from androguard.decompiler.dad.decompile import DalvikVMFormat
     ANDROGUARD_AVAILABLE = True
 except ImportError:
     ANDROGUARD_AVAILABLE = False
     logger.warning("Androguard not installed. Some analysis features will be limited.")
     AndroidAPK = None  # type: ignore
+    AnalyzeAPK = None  # type: ignore
 
 class Decompiler:
     def __init__(self):
@@ -128,3 +132,65 @@ class Decompiler:
         except Exception as e:
             logger.error(f"Failed to extract endpoints: {e}")
         return endpoints
+
+    def decompile_to_java(self, apk_path: str) -> str:
+        """
+        Decompile APK to Java source code using Androguard.
+        Returns the output directory containing decompiled Java files.
+        """
+        if not ANDROGUARD_AVAILABLE:
+            raise Exception("Androguard not available for Java decompilation")
+        
+        output_dir = apk_path.replace('.apk', '_java_src')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        try:
+            logger.info(f"Starting Java decompilation with Androguard for {apk_path}")
+            
+            # Use AnalyzeAPK to get APK, DalvikVMFormat, and Analysis objects
+            apk, dex_list, analysis = AnalyzeAPK(apk_path)
+            
+            logger.info(f"Found {len(dex_list)} DEX file(s) to decompile")
+            
+            # Decompile all classes to Java source code
+            class_count = 0
+            for dex in dex_list:
+                for cls in dex.get_classes():
+                    class_name = cls.get_name()
+                    # Skip Android framework classes
+                    if class_name.startswith('Landroid/') or class_name.startswith('Ljava/'):
+                        continue
+                    
+                    try:
+                        # Get the Java source code for this class
+                        java_source = cls.get_source()
+                        
+                        # Create directory structure based on package name
+                        # Convert Landroid/app/Activity; to android/app/Activity.java
+                        file_path = class_name[1:-1]  # Remove L and ;
+                        file_path = file_path.replace('/', os.sep) + '.java'
+                        full_path = os.path.join(output_dir, file_path)
+                        
+                        # Create directories
+                        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                        
+                        # Write Java source code
+                        with open(full_path, 'w', encoding='utf-8', errors='ignore') as f:
+                            f.write(java_source)
+                        
+                        class_count += 1
+                        
+                        # Log progress every 100 classes
+                        if class_count % 100 == 0:
+                            logger.info(f"Decompiled {class_count} classes...")
+                            
+                    except Exception as e:
+                        logger.warning(f"Failed to decompile class {class_name}: {e}")
+                        continue
+            
+            logger.info(f"Java decompilation completed: {class_count} classes decompiled to {output_dir}")
+            return output_dir
+            
+        except Exception as e:
+            logger.error(f"Java decompilation failed: {e}")
+            raise
