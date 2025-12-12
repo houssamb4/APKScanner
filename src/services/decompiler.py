@@ -14,12 +14,11 @@ try:
     from androguard.core.apk import APK as AndroidAPK
     from androguard.core.dex import DEX
     from androguard.misc import AnalyzeAPK
-    from androguard.core.analysis.analysis import Analysis
-    from androguard.decompiler.dad.decompile import DalvikVMFormat
     ANDROGUARD_AVAILABLE = True
-except ImportError:
+    logger.info("Androguard fully loaded - DEX to Java decompilation enabled")
+except ImportError as e:
     ANDROGUARD_AVAILABLE = False
-    logger.warning("Androguard not installed. Some analysis features will be limited.")
+    logger.warning(f"Androguard not installed: {e}. Some analysis features will be limited.")
     AndroidAPK = None  # type: ignore
     AnalyzeAPK = None  # type: ignore
 
