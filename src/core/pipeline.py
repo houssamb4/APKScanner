@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from ..utils.logger import logger
 from .validators import APKValidator
 from ..services.apk_analyzer import APKAnalyzer
+import os
+import shutil
 
 
 class PipelineStage:
@@ -183,10 +185,12 @@ class APKPipeline:
         try:
             decompiled_dir = self.analyzer.decompiler.decompile_with_apktool(apk_file_path)
             endpoints = self.analyzer.decompiler.extract_endpoints(decompiled_dir)
-            
+            apk_filename = os.path.basename(apk_file_path)
+
             return {
                 'decompiled_dir': decompiled_dir,
-                'endpoints': endpoints
+                'endpoints': endpoints,
+                'apk_filename': apk_filename
             }, ""
         except Exception as e:
             return None, f"Decompilation error: {str(e)}"
@@ -225,7 +229,9 @@ class APKPipeline:
                 'components': components,
                 'security': security,
                 'endpoints': decompile_data.get('endpoints', []),
-                'extract_data': extract_data
+                'extract_data': extract_data,
+                'decompiled_dir': decompile_data.get('decompiled_dir'),
+                'apk_filename': decompile_data.get('apk_filename')
             }
             
             return organized_data, ""
@@ -247,7 +253,7 @@ class APKPipeline:
             endpoints = organized_data['endpoints']
             
             apk_data = {
-                'filename': 'analyzed_apk.apk',  # Updated when called with actual filename
+                'filename': organized_data.get('apk_filename', 'analyzed_apk.apk'),
                 'package_name': manifest.get('package', ''),
                 'version_code': manifest.get('version_code', ''),
                 'version_name': manifest.get('version_name', ''),
@@ -297,6 +303,26 @@ class APKPipeline:
                 crud.create_endpoint(db, endpoint_data)
             
             db.commit()
+
+            # Rename decompiled directory to include apk id for easy identification
+            try:
+                orig_decompiled = organized_data.get('decompiled_dir')
+                if orig_decompiled and os.path.exists(orig_decompiled):
+                    # prefer original apk filename if available
+                    apk_fname = organized_data.get('apk_filename') or apk.filename
+                    base_name = os.path.splitext(os.path.basename(apk_fname))[0]
+                    new_dir_name = f"{base_name}_{apk.id}_decompiled"
+                    new_dir_path = os.path.join(os.path.dirname(orig_decompiled), new_dir_name)
+                    # move/rename
+                    if orig_decompiled != new_dir_path:
+                        if os.path.exists(new_dir_path):
+                            shutil.rmtree(new_dir_path)
+                        shutil.move(orig_decompiled, new_dir_path)
+                        logger.info(f"Renamed decompiled dir to {new_dir_path}")
+                    # include path in result
+                    result['decompiled_dir'] = new_dir_path
+            except Exception as e:
+                logger.warning(f"Failed to rename decompiled dir: {e}")
             
             result = {
                 'apk_id': apk.id,
