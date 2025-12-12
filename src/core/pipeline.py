@@ -11,6 +11,7 @@ from .validators import APKValidator
 from ..services.apk_analyzer import APKAnalyzer
 import os
 import shutil
+import uuid
 
 
 class PipelineStage:
@@ -184,11 +185,25 @@ class APKPipeline:
         """
         try:
             decompiled_dir = self.analyzer.decompiler.decompile_with_apktool(apk_file_path)
-            endpoints = self.analyzer.decompiler.extract_endpoints(decompiled_dir)
+            
+            # Generate random UID for decompiled folder
+            decompile_uid = str(uuid.uuid4())
+            parent_dir = os.path.dirname(decompiled_dir)
+            uid_decompiled_dir = os.path.join(parent_dir, decompile_uid)
+            
+            # Rename decompiled directory to use the UID
+            if os.path.exists(decompiled_dir) and decompiled_dir != uid_decompiled_dir:
+                if os.path.exists(uid_decompiled_dir):
+                    shutil.rmtree(uid_decompiled_dir)
+                shutil.move(decompiled_dir, uid_decompiled_dir)
+                logger.info(f"Renamed decompiled dir to {uid_decompiled_dir}")
+            
+            endpoints = self.analyzer.decompiler.extract_endpoints(uid_decompiled_dir)
             apk_filename = os.path.basename(apk_file_path)
 
             return {
-                'decompiled_dir': decompiled_dir,
+                'decompiled_dir': uid_decompiled_dir,
+                'decompile_uid': decompile_uid,
                 'endpoints': endpoints,
                 'apk_filename': apk_filename
             }, ""
@@ -231,6 +246,7 @@ class APKPipeline:
                 'endpoints': decompile_data.get('endpoints', []),
                 'extract_data': extract_data,
                 'decompiled_dir': decompile_data.get('decompiled_dir'),
+                'decompile_uid': decompile_data.get('decompile_uid'),
                 'apk_filename': decompile_data.get('apk_filename')
             }
             
@@ -303,29 +319,12 @@ class APKPipeline:
                 crud.create_endpoint(db, endpoint_data)
             
             db.commit()
-
-            # Rename decompiled directory to include apk id for easy identification
-            try:
-                orig_decompiled = organized_data.get('decompiled_dir')
-                if orig_decompiled and os.path.exists(orig_decompiled):
-                    # prefer original apk filename if available
-                    apk_fname = organized_data.get('apk_filename') or apk.filename
-                    base_name = os.path.splitext(os.path.basename(apk_fname))[0]
-                    new_dir_name = f"{base_name}_{apk.id}_decompiled"
-                    new_dir_path = os.path.join(os.path.dirname(orig_decompiled), new_dir_name)
-                    # move/rename
-                    if orig_decompiled != new_dir_path:
-                        if os.path.exists(new_dir_path):
-                            shutil.rmtree(new_dir_path)
-                        shutil.move(orig_decompiled, new_dir_path)
-                        logger.info(f"Renamed decompiled dir to {new_dir_path}")
-                    # include path in result
-                    result['decompiled_dir'] = new_dir_path
-            except Exception as e:
-                logger.warning(f"Failed to rename decompiled dir: {e}")
             
+            decompile_uid = organized_data.get('decompile_uid', 'unknown')
+
             result = {
                 'apk_id': apk.id,
+                'decompiled_folder': decompile_uid,
                 'package_name': manifest.get('package', ''),
                 'version_code': manifest.get('version_code', ''),
                 'version_name': manifest.get('version_name', ''),
