@@ -408,98 +408,7 @@ apkscanner/
 ├── temp/                  # Temporary files (auto-cleaned)
 ├── logs/                  # Application logs
 ├── tools/                 # External tools (apktool)
-├── docker/                # Containerization
-└── docs/                  # Documentation
-```
-
-### Code Quality
-- **Type Hints**: Full type annotation support
-- **Linting**: Follow PEP 8 standards
-- **Testing**: 90%+ test coverage target
-- **Documentation**: Comprehensive docstrings
-
-## 🚨 Security Considerations
-
-### Safe APK Handling
-- **Sandboxing**: All APK processing occurs in isolated temporary directories
-- **Cleanup**: Automatic removal of temporary files after analysis
-- **No Storage**: Original APK files are never retained on disk
-- **Metadata Only**: Database stores analysis results, not APK content
-
-### Best Practices
-- **Containerization**: Run in Docker for additional isolation
-- **Network Security**: Configure firewall rules appropriately
-- **Access Control**: Implement authentication for production use
-- **Monitoring**: Enable logging and monitoring for security events
-
-### Known Limitations
-- **Memory Usage**: Large APKs may require significant RAM
-- **Processing Time**: Complex APKs can take several minutes to analyze
-- **False Positives**: Some benign patterns may trigger security warnings
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**❌ "apktool not found" Error**
-```bash
-# Ensure apktool is installed
-java -jar tools/apktool.jar --version
-
-# Or install via package manager
-# Ubuntu/Debian:
-sudo apt install apktool
-# macOS:
-brew install apktool
-```
-
-**❌ "Androguard not available" Warning**
-```bash
-# Install Rust (required for androguard)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-
-# Install androguard
-pip install androguard[all]
-```
-
-**❌ Database Connection Issues**
-```bash
-# Check database file permissions
-ls -la apkscanner.db
-
-# Reset database if corrupted
-rm apkscanner.db
-python -c "from src.database.session import create_tables; create_tables()"
-```
-
-**❌ Memory/Performance Issues**
-```bash
-# Increase system limits
-export PYTHONPATH=$PYTHONPATH:.
-ulimit -n 4096
-
-# Monitor resource usage
-python -c "import psutil; print(f'CPU: {psutil.cpu_percent()}%, Memory: {psutil.virtual_memory().percent}%')"
-```
-
-### Debug Mode
-```bash
-# Enable debug logging
-export LOG_LEVEL=DEBUG
-uvicorn main:app --reload --log-level debug
-
-# Check logs
-tail -f logs/apkscanner.log
-```
-
-### Health Checks
-```bash
-# API health
-curl http://localhost:8001/api/v1/health
-
-# Pipeline validation
-python -c "from src.core.pipeline import Pipeline; p = Pipeline(); print('Pipeline OK')"
+└── docker/                # Containerization
 ```
 
 ## 🤝 Contributing
@@ -518,37 +427,6 @@ git checkout -b feature/amazing-enhancement
 # Set up development environment
 make install-dev
 ```
-
-### Code Standards
-- **PEP 8**: Follow Python style guidelines
-- **Type Hints**: Add type annotations to new functions
-- **Docstrings**: Document all public functions and classes
-- **Tests**: Add tests for new features (aim for 90%+ coverage)
-
-### Pull Request Process
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
-
-### Testing Your Changes
-```bash
-# Run full test suite
-make test
-
-# Run linting
-make lint
-
-# Check coverage
-make coverage
-```
-
-### Reporting Issues
-- Use the GitHub issue tracker
-- Include APK samples if possible (or describe the issue)
-- Provide steps to reproduce
-- Include environment details (Python version, OS, etc.)
 
 ## 🙏 Acknowledgments
 
