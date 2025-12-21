@@ -18,8 +18,6 @@ The project implements a robust pipeline for complete APK analysis:
 - ✅ **Organize**: Structured data organization and comprehensive risk assessment
 - ✅ **Output**: Database storage with relationships and correlation capabilities
 
-See [PIPELINE.md](PIPELINE.md) for detailed pipeline documentation.
-
 ## ✨ Key Features
 
 ### 🔍 APK Decompilation & Structural Analysis
