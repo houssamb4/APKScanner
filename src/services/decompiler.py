@@ -116,7 +116,17 @@ class Decompiler:
         """Extract URLs and endpoints from decompiled code."""
         endpoints = []
         try:
-            # This is a simplified extraction - in practice, you'd need more sophisticated analysis
+            # Known benign Android framework URLs to exclude from security analysis
+            excluded_patterns = [
+                r'http://schemas\.android\.com/apk/res/android',
+                r'http://schemas\.android\.com/apk/res-auto',
+                r'http://schemas\.android\.com/tools',
+                r'http://developer\.android\.com',
+                r'https://developer\.android\.com',
+                r'http://android\.com',
+                r'https://android\.com'
+            ]
+            
             for root, dirs, files in os.walk(decompiled_dir):
                 for file in files:
                     if file.endswith('.smali'):
@@ -127,7 +137,15 @@ class Decompiler:
                             import re
                             urls = re.findall(r'https?://[^\s\'"]+', content)
                             for url in urls:
-                                endpoints.append({'url': url, 'type': 'hardcoded'})
+                                # Filter out known benign Android framework URLs
+                                is_excluded = False
+                                for pattern in excluded_patterns:
+                                    if re.search(pattern, url, re.IGNORECASE):
+                                        is_excluded = True
+                                        break
+                                
+                                if not is_excluded:
+                                    endpoints.append({'url': url, 'type': 'hardcoded'})
         except Exception as e:
             logger.error(f"Failed to extract endpoints: {e}")
         return endpoints
