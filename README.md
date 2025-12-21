@@ -9,17 +9,7 @@ A comprehensive **APK security analysis and decompilation microservice** for And
 
 ## 🔄 Processing Pipeline
 
-```
-INPUT APK → VALIDATE → EXTRACT → DECOMPILE → ORGANIZE → OUTPUT
-   |          |          |          |          |         |
-   |    File validation  Metadata   Code      Security   Database
-   |    Size check      Extraction Decompile Analysis   Storage
-   |    Format check    Permissions APKtool   Risk Score Relationships
-   └─ Files are        Manifest    Endpoints Risk Eval   Queries
-      validated,       parsing     Extraction Assessment  Persistence
-      extracted,
-      processed
-```
+<img width="5498" height="3469" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-12-21-141756" src="https://github.com/user-attachments/assets/7e612f2d-d7e3-4adb-8186-27f6d70e0e47" />
 
 The project implements a robust pipeline for complete APK analysis:
 - ✅ **Validate**: File format, size, and structure validation
