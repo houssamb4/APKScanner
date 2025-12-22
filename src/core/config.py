@@ -8,10 +8,9 @@ class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env", extra='ignore')
 
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./apkscanner.db")
-    # default to shared backend storage temp folder (Windows absolute path)
-    # Use Pydantic Field so BaseSettings reads env vars / .env correctly at runtime
+    # default to local temp folder
     temp_dir: str = Field(
-        default=r"C:\Users\houss\projects\Mobile-Security-Scanner\backend\storage\temp",
+        default="./temp",
         env="TEMP_DIR",
     )
     logs_dir: str = Field(default="./logs", env="LOGS_DIR")

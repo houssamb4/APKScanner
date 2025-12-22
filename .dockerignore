@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.git/
+.gitignore
+.pytest_cache/
+venv/
+temp/
+logs/
+data/
+*.db
+tests/
+Makefile
+README.md
+docker/
