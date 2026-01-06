@@ -30,8 +30,14 @@ class Decompiler:
         """Decompile APK using apktool and return the output directory."""
         output_dir = apk_path.replace('.apk', '_decompiled')
         try:
-            cmd = [self.apktool_path, 'd', '-f', '-o', output_dir, apk_path]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            # Use java -jar for apktool.jar to handle spaces in paths
+            if self.apktool_path.endswith('.jar'):
+                cmd = ['java', '-jar', self.apktool_path, 'd', '-f', '-o', output_dir, apk_path]
+            else:
+                # For batch file or command
+                cmd = [self.apktool_path, 'd', '-f', '-o', output_dir, apk_path]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
             if result.returncode != 0:
                 logger.error(f"Apktool decompilation failed: {result.stderr}")
                 raise Exception(f"Apktool error: {result.stderr}")
